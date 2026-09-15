@@ -24,7 +24,13 @@ function formatCurrency(amount: number) {
   }).format(amount || 0);
 }
 
-export default function WorkDetail({ work }: { work: WorkOrder }) {
+export default function WorkDetail({
+  work,
+  canDelete,
+}: {
+  work: WorkOrder;
+  canDelete: boolean;
+}) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -58,7 +64,8 @@ export default function WorkDetail({ work }: { work: WorkOrder }) {
             status: work.status,
             description: work.description,
             price: work.price,
-            totalPaid: work.totalPaid,
+            paidCash: work.paidCash,
+            paidUpi: work.paidUpi,
             dueDate: work.dueDate,
             notes: work.notes,
           }}
@@ -67,7 +74,8 @@ export default function WorkDetail({ work }: { work: WorkOrder }) {
     );
   }
 
-  const balance = work.price - work.totalPaid;
+  const paidTotal = work.paidCash + work.paidUpi;
+  const balance = work.price - paidTotal;
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -106,10 +114,26 @@ export default function WorkDetail({ work }: { work: WorkOrder }) {
           </div>
           <div>
             <p className="font-sans text-xs uppercase tracking-wider text-forest/60">
+              Cash Paid
+            </p>
+            <p className="font-sans text-ink">
+              {formatCurrency(work.paidCash)}
+            </p>
+          </div>
+          <div>
+            <p className="font-sans text-xs uppercase tracking-wider text-forest/60">
+              UPI Paid
+            </p>
+            <p className="font-sans text-ink">
+              {formatCurrency(work.paidUpi)}
+            </p>
+          </div>
+          <div>
+            <p className="font-sans text-xs uppercase tracking-wider text-forest/60">
               Total Paid
             </p>
             <p className="font-sans text-ink">
-              {formatCurrency(work.totalPaid)}
+              {formatCurrency(paidTotal)}
             </p>
           </div>
           <div>
@@ -153,13 +177,15 @@ export default function WorkDetail({ work }: { work: WorkOrder }) {
       </div>
 
       <div className="mt-6 flex justify-end gap-3">
-        <button
-          onClick={handleDelete}
-          disabled={deleting}
-          className="rounded-full border border-red-300 px-5 py-2 font-sans text-sm text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
-        >
-          {deleting ? "Deleting…" : "Delete"}
-        </button>
+        {canDelete && (
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="rounded-full border border-red-300 px-5 py-2 font-sans text-sm text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+          >
+            {deleting ? "Deleting…" : "Delete"}
+          </button>
+        )}
         <button
           onClick={() => setEditing(true)}
           className="rounded-full bg-forest px-6 py-2 font-sans text-sm text-cream transition-colors hover:bg-forest-light"

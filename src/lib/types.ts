@@ -10,7 +10,8 @@ export interface WorkOrder {
   status: WorkStatus;
   description: string;
   price: number;
-  totalPaid: number;
+  paidCash: number;
+  paidUpi: number;
   dueDate: string;
   notes: string;
   createdAt: string;
@@ -23,8 +24,11 @@ export function validateWorkOrderInput(input: WorkOrderInput): string | null {
   if (!input.customerName?.trim()) {
     return "Customer name is required.";
   }
-  if (input.totalPaid > input.price) {
-    return "Total paid cannot be greater than the total price.";
+  if (input.paidCash + input.paidUpi > input.price) {
+    return "Cash + UPI cannot be greater than the total price.";
+  }
+  if (input.status === "Completed" && input.paidCash + input.paidUpi !== input.price) {
+    return "Payment must be fully settled (Cash + UPI must equal the total price) before marking as Completed.";
   }
   return null;
 }

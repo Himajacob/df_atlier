@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSession } from "@/lib/auth";
 import {
   deleteWork,
   describeDbError,
@@ -66,6 +67,11 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const session = await getSession();
+  if (session?.role !== "admin") {
+    return NextResponse.json({ error: "Admins only." }, { status: 403 });
+  }
+
   const { id } = await params;
   try {
     await deleteWork(id);

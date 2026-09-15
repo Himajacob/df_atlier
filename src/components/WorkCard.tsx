@@ -20,7 +20,7 @@ function formatCurrency(amount: number) {
 }
 
 export default function WorkCard({ work }: { work: WorkOrder }) {
-  const balance = work.price - work.totalPaid;
+  const balance = work.price - work.paidCash - work.paidUpi;
 
   return (
     <Link

@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import PasswordInput from "@/components/PasswordInput";
 
-const inputClasses =
-  "w-full rounded-lg border border-gold/30 bg-white/70 px-3 py-2 font-sans text-sm text-ink placeholder:text-ink/40 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30";
 const labelClasses =
   "mb-1 block font-sans text-xs font-medium uppercase tracking-wider text-forest/70";
 
@@ -59,32 +58,29 @@ export default function ResetPasswordForm() {
     >
       <div>
         <label className={labelClasses}>Current Password</label>
-        <input
+        <PasswordInput
           required
-          type="password"
-          className={inputClasses}
+          autoComplete="current-password"
           value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
+          onChange={setCurrentPassword}
         />
       </div>
       <div>
         <label className={labelClasses}>New Password</label>
-        <input
+        <PasswordInput
           required
-          type="password"
-          className={inputClasses}
+          autoComplete="new-password"
           value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
+          onChange={setNewPassword}
         />
       </div>
       <div>
         <label className={labelClasses}>Confirm New Password</label>
-        <input
+        <PasswordInput
           required
-          type="password"
-          className={inputClasses}
+          autoComplete="new-password"
           value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
+          onChange={setConfirmPassword}
         />
       </div>
 

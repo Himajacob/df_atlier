@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { WORK_STATUSES, validateWorkOrderInput } from "@/lib/types";
 import type { WorkOrderInput } from "@/lib/types";
 
@@ -12,7 +12,8 @@ const EMPTY: WorkOrderInput = {
   status: WORK_STATUSES[0],
   description: "",
   price: 0,
-  totalPaid: 0,
+  paidCash: 0,
+  paidUpi: 0,
   dueDate: "",
   notes: "",
 };
@@ -35,12 +36,22 @@ export default function WorkForm({
   const [error, setError] = useState<string | null>(null);
 
   const isEdit = Boolean(workId);
+  const paidTotal = form.paidCash + form.paidUpi;
+  const overPaid = paidTotal > form.price;
+  const unsettled = form.status === "Completed" && paidTotal !== form.price;
+  const controllerRef = useRef<AbortController | null>(null);
 
   function update<K extends keyof WorkOrderInput>(
     key: K,
     value: WorkOrderInput[K]
   ) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function handleCancel() {
+    controllerRef.current?.abort();
+    controllerRef.current = null;
+    router.back();
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -56,6 +67,7 @@ export default function WorkForm({
     setError(null);
 
     const controller = new AbortController();
+    controllerRef.current = controller;
     const timeout = setTimeout(() => controller.abort(), 45_000);
 
     try {
@@ -83,17 +95,23 @@ export default function WorkForm({
       router.refresh();
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
-        setError(
-          "This is taking too long. The database may be unreachable — check your connection and try again."
-        );
+        if (controllerRef.current === controller) {
+          setError(
+            "This is taking too long. The database may be unreachable — check your connection and try again."
+          );
+          setSaving(false);
+        }
+        // else: the user clicked Cancel, which already aborted this
+        // request and navigated away — nothing left to show here.
       } else if (err instanceof TypeError) {
         setError(
           "Could not reach the app server. Check that it's still running and try again."
         );
+        setSaving(false);
       } else {
         setError(err instanceof Error ? err.message : "Something went wrong.");
+        setSaving(false);
       }
-      setSaving(false);
     } finally {
       clearTimeout(timeout);
     }
@@ -181,20 +199,36 @@ export default function WorkForm({
           />
         </div>
         <div>
-          <label className={labelClasses}>Total Paid (₹)</label>
+          <label className={labelClasses}>Cash Paid (₹)</label>
           <input
             type="number"
             min={0}
-            max={form.price}
             className={`${inputClasses} ${
-              form.totalPaid > form.price ? "border-red-400 focus:border-red-400 focus:ring-red-200" : ""
+              overPaid || unsettled ? "border-red-400 focus:border-red-400 focus:ring-red-200" : ""
             }`}
-            value={form.totalPaid}
-            onChange={(e) => update("totalPaid", Number(e.target.value))}
+            value={form.paidCash}
+            onChange={(e) => update("paidCash", Number(e.target.value))}
           />
-          {form.totalPaid > form.price && (
+        </div>
+        <div>
+          <label className={labelClasses}>UPI Paid (₹)</label>
+          <input
+            type="number"
+            min={0}
+            className={`${inputClasses} ${
+              overPaid || unsettled ? "border-red-400 focus:border-red-400 focus:ring-red-200" : ""
+            }`}
+            value={form.paidUpi}
+            onChange={(e) => update("paidUpi", Number(e.target.value))}
+          />
+          {overPaid && (
             <p className="mt-1 font-sans text-xs text-red-600">
-              Cannot be greater than the total price.
+              Cash + UPI ({paidTotal}) cannot be greater than the total price.
+            </p>
+          )}
+          {!overPaid && unsettled && (
+            <p className="mt-1 font-sans text-xs text-red-600">
+              Cash + UPI must equal the total price (₹{form.price}) before marking as Completed.
             </p>
           )}
         </div>
@@ -240,14 +274,14 @@ export default function WorkForm({
       <div className="flex justify-end gap-3">
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={handleCancel}
           className="rounded-full border border-forest/30 px-5 py-2 font-sans text-sm text-forest transition-colors hover:bg-forest/5"
         >
           Cancel
         </button>
         <button
           type="submit"
-          disabled={saving || form.totalPaid > form.price}
+          disabled={saving || overPaid || unsettled}
           className="rounded-full bg-forest px-6 py-2 font-sans text-sm text-cream transition-colors hover:bg-forest-light disabled:opacity-60"
         >
           {saving ? "Saving…" : isEdit ? "Save Changes" : "Create Work"}

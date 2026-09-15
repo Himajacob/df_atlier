@@ -11,7 +11,8 @@ interface WorkOrderRow {
   status: string;
   description: string;
   price: string;
-  total_paid: string;
+  paid_cash: string;
+  paid_upi: string;
   due_date: string;
   notes: string;
   created_at: Date;
@@ -27,7 +28,8 @@ function fromRow(row: WorkOrderRow): WorkOrder {
     status: row.status as WorkStatus,
     description: row.description,
     price: Number(row.price),
-    totalPaid: Number(row.total_paid),
+    paidCash: Number(row.paid_cash),
+    paidUpi: Number(row.paid_upi),
     dueDate: row.due_date,
     notes: row.notes,
     createdAt: row.created_at.toISOString(),
@@ -65,8 +67,8 @@ export async function createWork(input: WorkOrderInput): Promise<WorkOrder> {
   const id = crypto.randomUUID();
   const result = await query<WorkOrderRow>(
     `INSERT INTO work_orders
-      (id, customer_name, customer_phone, quantity, status, description, price, total_paid, due_date, notes)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      (id, customer_name, customer_phone, quantity, status, description, price, paid_cash, paid_upi, due_date, notes)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
      RETURNING *`,
     [
       id,
@@ -76,7 +78,8 @@ export async function createWork(input: WorkOrderInput): Promise<WorkOrder> {
       input.status,
       input.description,
       input.price,
-      input.totalPaid,
+      input.paidCash,
+      input.paidUpi,
       input.dueDate,
       input.notes,
     ]
@@ -96,9 +99,10 @@ export async function updateWork(
       status = $5,
       description = $6,
       price = $7,
-      total_paid = $8,
-      due_date = $9,
-      notes = $10,
+      paid_cash = $8,
+      paid_upi = $9,
+      due_date = $10,
+      notes = $11,
       updated_at = now()
      WHERE id = $1
      RETURNING *`,
@@ -110,7 +114,8 @@ export async function updateWork(
       input.status,
       input.description,
       input.price,
-      input.totalPaid,
+      input.paidCash,
+      input.paidUpi,
       input.dueDate,
       input.notes,
     ]

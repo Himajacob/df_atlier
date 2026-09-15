@@ -45,12 +45,30 @@ function ensureSchema(): Promise<void> {
           status TEXT NOT NULL,
           description TEXT NOT NULL DEFAULT '',
           price NUMERIC NOT NULL DEFAULT 0,
-          total_paid NUMERIC NOT NULL DEFAULT 0,
+          paid_cash NUMERIC NOT NULL DEFAULT 0,
+          paid_upi NUMERIC NOT NULL DEFAULT 0,
           due_date TEXT NOT NULL DEFAULT '',
           notes TEXT NOT NULL DEFAULT '',
           created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
           updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
         );
+
+        ALTER TABLE work_orders ADD COLUMN IF NOT EXISTS paid_cash NUMERIC NOT NULL DEFAULT 0;
+        ALTER TABLE work_orders ADD COLUMN IF NOT EXISTS paid_upi NUMERIC NOT NULL DEFAULT 0;
+
+        DO $migrate_total_paid$
+        BEGIN
+          IF EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'work_orders' AND column_name = 'total_paid'
+          ) THEN
+            -- Preserve pre-migration payments as cash (the split wasn't
+            -- tracked yet, so cash is the closest single-bucket guess).
+            UPDATE work_orders SET paid_cash = total_paid WHERE total_paid <> 0;
+            ALTER TABLE work_orders DROP COLUMN total_paid;
+          END IF;
+        END
+        $migrate_total_paid$;
         `
       )
       .then(() => undefined)

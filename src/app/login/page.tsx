@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import PasswordInput from "@/components/PasswordInput";
 
 const inputClasses =
   "w-full rounded-lg border border-gold/30 bg-white/70 px-3 py-2 font-sans text-sm text-ink placeholder:text-ink/40 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30";
@@ -79,12 +80,11 @@ function LoginForm() {
         </div>
         <div>
           <label className={labelClasses}>Password</label>
-          <input
+          <PasswordInput
             required
-            type="password"
-            className={inputClasses}
+            autoComplete="current-password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={setPassword}
             placeholder="••••••••"
           />
         </div>
