@@ -233,7 +233,7 @@ export default function WorkForm({
           )}
           {!overPaid && completedButUnpaid && (
             <p className="mt-1 font-sans text-xs text-amber-700">
-              Warning: payment incomplete (₹{form.price - paidTotal} due). The work will be tagged "Incomplete payment" and shown in yellow.
+              Warning: payment incomplete (₹{form.price - paidTotal} due). The work will be tagged &quot;Incomplete payment&quot; and shown in yellow.
             </p>
           )}
         </div>
