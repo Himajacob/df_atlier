@@ -1,9 +1,9 @@
 "use client";
 
+import type { WorkOrderInput } from "@/lib/types";
+import { WORK_STATUSES, validateWorkOrderInput } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { WORK_STATUSES, validateWorkOrderInput } from "@/lib/types";
-import type { WorkOrderInput } from "@/lib/types";
 
 const EMPTY: WorkOrderInput = {
   customerName: "",

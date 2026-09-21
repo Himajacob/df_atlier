@@ -1,6 +1,6 @@
+import type { WorkOrder } from "@/lib/types";
 import Link from "next/link";
 import StatusBadge from "./StatusBadge";
-import type { WorkOrder } from "@/lib/types";
 
 function formatDate(iso: string) {
   if (!iso) return "—";
