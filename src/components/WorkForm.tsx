@@ -38,7 +38,8 @@ export default function WorkForm({
   const isEdit = Boolean(workId);
   const paidTotal = form.paidCash + form.paidUpi;
   const overPaid = paidTotal > form.price;
-  const unsettled = form.status === "Completed" && paidTotal !== form.price;
+  // completedButUnpaid: user selected Completed but payments don't match price
+  const completedButUnpaid = form.status === "Completed" && paidTotal < form.price;
   const controllerRef = useRef<AbortController | null>(null);
 
   function update<K extends keyof WorkOrderInput>(
@@ -91,7 +92,8 @@ export default function WorkForm({
         throw new Error(data.error ?? `Something went wrong (status ${res.status}).`);
       }
 
-      router.push(`/works/${data.work.id}`);
+      // After saving (create or update), navigate back to the dashboard.
+      router.push("/");
       router.refresh();
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
@@ -115,6 +117,9 @@ export default function WorkForm({
     } finally {
       clearTimeout(timeout);
     }
+
+    // Ensure saving state is cleared if we didn't navigate away for any reason.
+    setSaving(false);
   }
 
   return (
@@ -204,7 +209,7 @@ export default function WorkForm({
             type="number"
             min={0}
             className={`${inputClasses} ${
-              overPaid || unsettled ? "border-red-400 focus:border-red-400 focus:ring-red-200" : ""
+              overPaid ? "border-red-400 focus:border-red-400 focus:ring-red-200" : completedButUnpaid ? "border-amber-300 focus:border-amber-300 focus:ring-amber-200" : ""
             }`}
             value={form.paidCash}
             onChange={(e) => update("paidCash", Number(e.target.value))}
@@ -216,7 +221,7 @@ export default function WorkForm({
             type="number"
             min={0}
             className={`${inputClasses} ${
-              overPaid || unsettled ? "border-red-400 focus:border-red-400 focus:ring-red-200" : ""
+              overPaid ? "border-red-400 focus:border-red-400 focus:ring-red-200" : completedButUnpaid ? "border-amber-300 focus:border-amber-300 focus:ring-amber-200" : ""
             }`}
             value={form.paidUpi}
             onChange={(e) => update("paidUpi", Number(e.target.value))}
@@ -226,9 +231,9 @@ export default function WorkForm({
               Cash + UPI ({paidTotal}) cannot be greater than the total price.
             </p>
           )}
-          {!overPaid && unsettled && (
-            <p className="mt-1 font-sans text-xs text-red-600">
-              Cash + UPI must equal the total price (₹{form.price}) before marking as Completed.
+          {!overPaid && completedButUnpaid && (
+            <p className="mt-1 font-sans text-xs text-amber-700">
+              Warning: payment incomplete (₹{form.price - paidTotal} due). The work will be tagged "Incomplete payment" and shown in yellow.
             </p>
           )}
         </div>
@@ -281,7 +286,7 @@ export default function WorkForm({
         </button>
         <button
           type="submit"
-          disabled={saving || overPaid || unsettled}
+          disabled={saving || overPaid}
           className="rounded-full bg-forest px-6 py-2 font-sans text-sm text-cream transition-colors hover:bg-forest-light disabled:opacity-60"
         >
           {saving ? "Saving…" : isEdit ? "Save Changes" : "Create Work"}

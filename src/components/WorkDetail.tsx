@@ -89,7 +89,12 @@ export default function WorkDetail({
             Qty {work.quantity}
           </p>
         </div>
-        <StatusBadge status={work.status} />
+        <StatusBadge
+          status={work.status}
+          price={work.price}
+          paidCash={work.paidCash}
+          paidUpi={work.paidUpi}
+        />
       </div>
 
       <div className="flex flex-col gap-6 rounded-2xl border border-gold/25 bg-white/60 p-6 shadow-sm">

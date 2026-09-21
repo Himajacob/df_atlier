@@ -27,9 +27,8 @@ export function validateWorkOrderInput(input: WorkOrderInput): string | null {
   if (input.paidCash + input.paidUpi > input.price) {
     return "Cash + UPI cannot be greater than the total price.";
   }
-  if (input.status === "Completed" && input.paidCash + input.paidUpi !== input.price) {
-    return "Payment must be fully settled (Cash + UPI must equal the total price) before marking as Completed.";
-  }
+  // Allow marking as Completed even if payment is not fully settled.
+  // UI will indicate such completed-but-unpaid items with a different badge color.
   return null;
 }
 

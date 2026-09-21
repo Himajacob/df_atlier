@@ -36,7 +36,12 @@ export default function WorkCard({ work }: { work: WorkOrder }) {
             Qty {work.quantity}
           </p>
         </div>
-        <StatusBadge status={work.status} />
+        <StatusBadge
+          status={work.status}
+          price={work.price}
+          paidCash={work.paidCash}
+          paidUpi={work.paidUpi}
+        />
       </div>
 
       {work.description && (
